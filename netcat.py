@@ -18,7 +18,7 @@ def execute(cmd):
         return
     
     # check_output: runs command on local OS and returns output
-    output = subprocess.check_output(shlex.split(cmd), stderr=subprocess.STDOUT)
+    output = subprocess.check_output(shlex.split(cmd), stderr=subprocess.STDOUT) # subprocess.check_putput(): runs proc with args(cmd) and returns output 
     return output.decode()
 
 
@@ -28,8 +28,10 @@ class NetCat:
         self.args = args
         self.buffer = buffer
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # socket.SO_REUSEADDR - allow immediate reuse of sockets; avoid TIME_WAIT (TCP)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
+# https://www.baeldung.com/linux/socket-options-difference#bd-soreuseaddr-vs-soreuseport
+    
     # either listening or sending based on args from user
     def run(self):
         if self.args.listen:
