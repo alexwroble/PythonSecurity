@@ -75,7 +75,28 @@ class NetCat:
             client_thread = threading.Thread(target=self.handle, args=(client_socket,))
             client_thread.start()
 
-
+    # needs testing
+    def handle(self, client_socket):
+        # if execute cmd exists, call execute fct with cmd supplied in CL args
+        if self.args.execute:
+            output = execute(self.args.execute)
+            client_socket.send(output.encode()) # Send output back on socket
+        elif self.args.upload: # Upload arg exists; used when in listening mode, receives file on connected IP/PORT
+            f_buff = b'' # binary stream for file data
+            while True:
+                data_rec = client_socket.recv(4096)
+                if data_rec:
+                    f_buff += data_rec
+                else:
+                    break
+            # After receiving data to upload to file, create/open file name from args and write buffer to file; 
+            # Sends confirmation to client socket as response
+            with open(self.args.upload, "wb") as myFile: 
+                myFile.write(f_buff)
+                response = f'Saved File: {self.args.upload}'
+                client_socket.send(response.encode())
+        elif self.args.command:
+            
 
 
 
