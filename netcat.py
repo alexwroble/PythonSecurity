@@ -96,8 +96,22 @@ class NetCat:
                 response = f'Saved File: {self.args.upload}'
                 client_socket.send(response.encode())
         elif self.args.command:
-            
-
+            buff = b''
+            while True:
+                try: 
+                    # send command prompt
+                    client_socket.send(b'CMD >> ')
+                    # Continue to receive data and write to buff until newline char received (when user presses enter, understood that user is ready to execute cmd entered)
+                    while "\n" not in buff.decode(): 
+                        buff += client_socket.recv(128)
+                    response = execute(buff.decode()) # after cmd has been received, send to execute fct and await response
+                    if response is not None:
+                        client_socket.send(response.decode()) # send response
+                    buff = b'' # reset buffer, await next command
+                except: # exception (^c) to kill cmd shell
+                    print(f'server killed')
+                    self.socket.close()
+                    sys.exit()
 
 
 
