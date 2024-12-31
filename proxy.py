@@ -38,7 +38,22 @@ def hexdump(src, length=16, show=True):
         print(line)
     else:
       return results
-    
-    
+
+# watch comms going through proxy; nodes at each end of proxy will connect via this
+# conn: connection -- socket object
+def recv_from(conn):
+  buff = b''
+  conn.settimeout(5) # timeout exception thrown when socket operation takes more than 5 seconds
+  try: 
+    while True:
+      data = conn.recv(4096)
+      if not data:
+        break
+      buff += data
+  except Exception as e:
+    return buffer
+  return buffer
+  
+  
     
     
