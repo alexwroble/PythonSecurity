@@ -52,11 +52,13 @@ class NetCat:
                 response = ""
                 while recv_len:
                     data = self.socket.recv(4096)
+                    if not data:
+                        break
                     recv_len = len(data)
                     response += data.decode()
                     # break if no more data
-                    if recv_len < 4096:
-                        break
+                    # if recv_len < 4096:
+                    #     break
                     if response:
                         print(response)
                         buffer = input('> ')
@@ -104,11 +106,12 @@ class NetCat:
                     # send command prompt
                     client_socket.send(b'CMD >> ')
                     # Continue to receive data and write to buff until newline char received (when user presses enter, understood that user is ready to execute cmd entered)
-                    while "\n" not in buff.decode(): 
+                    while '\n' not in buff.decode(): 
+                    # while b'\n' not in buff:    
                         buff += client_socket.recv(128)
                     response = execute(buff.decode()) # after cmd has been received, send to execute fct and await response
                     if response is not None:
-                        client_socket.send(response.decode()) # send response
+                        client_socket.send(response.encode()) # send response
                     buff = b'' # reset buffer, await next command
                 except: # exception (^c) to kill cmd shell
                     print(f'server killed')
@@ -118,7 +121,7 @@ class NetCat:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="BHP Net Tool", 
+    parser = argparse.ArgumentParser(description="Net Tool", 
                                      formatter_class=argparse.RawDescriptionHelpFormatter, 
                                      epilog=textwrap.dedent("""
 Examples:
@@ -136,8 +139,11 @@ Examples:
     parser.add_argument('-u', "--upload", help="upload file")
     args = parser.parse_args()
     if args.listen:
-        buffer = ""
+        buffer = ''
+        print("listening...")
     else:
+        print("reading...")
         buffer = sys.stdin.read()
+        print("EOF received")
     nc = NetCat(args, buffer.encode())
     nc.run()
