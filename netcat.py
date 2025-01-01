@@ -18,7 +18,7 @@ def execute(cmd):
         return
     
     # check_output: runs command on local OS and returns output
-    output = subprocess.check_output(shlex.split(cmd), stderr=subprocess.STDOUT)
+    output = subprocess.check_output(shlex.split(cmd), stderr=subprocess.STDOUT) # subprocess.check_putput(): runs proc with args(cmd) and returns output 
     return output.decode()
 
 
@@ -28,8 +28,10 @@ class NetCat:
         self.args = args
         self.buffer = buffer
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # socket.SO_REUSEADDR - allow immediate reuse of sockets; avoid TIME_WAIT (TCP)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
+# https://www.baeldung.com/linux/socket-options-difference#bd-soreuseaddr-vs-soreuseport
+    
     # either listening or sending based on args from user
     def run(self):
         if self.args.listen:
@@ -75,8 +77,43 @@ class NetCat:
             client_thread = threading.Thread(target=self.handle, args=(client_socket,))
             client_thread.start()
 
-
-
+    # needs testing
+    def handle(self, client_socket):
+        # if execute cmd exists, call execute fct with cmd supplied in CL args
+        if self.args.execute:
+            output = execute(self.args.execute)
+            client_socket.send(output.encode()) # Send output back on socket
+        elif self.args.upload: # Upload arg exists; used when in listening mode, receives file on connected IP/PORT
+            f_buff = b'' # binary stream for file data
+            while True:
+                data_rec = client_socket.recv(4096)
+                if data_rec:
+                    f_buff += data_rec
+                else:
+                    break
+            # After receiving data to upload to file, create/open file name from args and write buffer to file; 
+            # Sends confirmation to client socket as response
+            with open(self.args.upload, "wb") as myFile: 
+                myFile.write(f_buff)
+                response = f'Saved File: {self.args.upload}'
+                client_socket.send(response.encode())
+        elif self.args.command:
+            buff = b''
+            while True:
+                try: 
+                    # send command prompt
+                    client_socket.send(b'CMD >> ')
+                    # Continue to receive data and write to buff until newline char received (when user presses enter, understood that user is ready to execute cmd entered)
+                    while "\n" not in buff.decode(): 
+                        buff += client_socket.recv(128)
+                    response = execute(buff.decode()) # after cmd has been received, send to execute fct and await response
+                    if response is not None:
+                        client_socket.send(response.decode()) # send response
+                    buff = b'' # reset buffer, await next command
+                except: # exception (^c) to kill cmd shell
+                    print(f'server killed')
+                    self.socket.close()
+                    sys.exit()
 
 
 
