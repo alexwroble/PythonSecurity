@@ -67,7 +67,7 @@ def response_handler(buff):
   #TODO
   return buff
 
-
+# The cool proxy stuff! 
 def proxy_handler(client_sock, remote_host, remote_port, receive_first):
   remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # establish conn to remote host (cont' below)
   remote_socket.connect((remote_host, remote_port)) # connect with supplied (IP, PORT) params
@@ -105,7 +105,47 @@ def proxy_handler(client_sock, remote_host, remote_port, receive_first):
       remote_socket.close()
       break
   return
-      
+
+# server connection management
+def server_loop(local_host, local_port, remote_host, remote_port, receive_first):
+  server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # create server socket
+  try:
+    server.bind((remote_host, remote_port)) # bind: reserves port for use (cannot be used until conn is closed)
+    # https://stackoverflow.com/questions/64145131/socket-bind-vs-socket-listen  // helpful for bind vs listen fcts for above
+  except Exception as e: 
+    print("Error binding server to remote HOST/PORT: {e}")
+    sys.exit()
+
+  print("Server binded to Host/Port: {remote_host}/{remote_port}")
+  server.listen(5) # See stack overflow link above; server listening for incoming packets; Max 5 conns
+  while True:
+    # accept method waits for incoming connection. When connection received, it returns a new socket obj of client and their address
+    client_socket, addr = server.accept()
+    print("Received connection from client address: {addr}")
+    # creating thread for comms between client and server:
+    proxy_instance_thread = threading.Thread(target=proxy_handler, args=(client_socket, remote_host, remote_port, receive_first))
+    proxy_instance_thread.start()
+
+def main():
+  if(len(sys.argv[1:]) != 5:
+    print("Check arguments! Requires localhost, localport, remotehost, remoteport, receive_first")
+    sys.exit(0)
+  localhost = sys.argv[1]
+  localport = int(sys.argv[2])
+  remotehost = sys.argv[3]
+  remoteport = int(sys.argv[4])
+  receive_first = sys.argv[5]
+  if receive_first.lower() == "true":
+    receive_first = True
+  else:
+    receive_first = False
+
+  server_loop(localhost, localport, remotehost, remoteport, receive_first)
+
+
+if __name__ == "__main__":
+  main()
+
 
   
   
