@@ -36,9 +36,15 @@ Distributed File Transfer System: (network sim, spicy attacks to come later)
 > sender.py
 > tracker.txt
 >> Format: file_name sequence_number sender_hostname sender_port
+
 >> values separated by single space; example -- 
+
 >>> myFile.txt 1 127.0.0.1 5500
+
 >>> myFile.txt 3 127.0.0.1 5600
+
 >>> myFile.txt 2 127.0.0.1 6500
+
 >> rmk: the sequence number doesn't need to be in any specific order, the requester will sort and reach out to the senders in order regardless
+
 > Attack ideas: DoS, Eavesdropping, file poisoning
