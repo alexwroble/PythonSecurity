@@ -1,10 +1,13 @@
 import socket
 import threading
+import argparse
 
-IP = '127.0.0.1'
-PORT = 9998
+# IP = '127.0.0.1'
+# PORT = 9998
 
-def main():
+def main(args):
+    IP = args.IP
+    PORT = args.PORT
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Create socket
     server.bind((IP, PORT)) # bind socket to address
     server.listen(5) # allow server to accept connections with param backlog of 5
@@ -24,4 +27,9 @@ def handle_client(client_socket):
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--IP', type=str, help="IP address of server to bind to", default='127.0.0.1')
+    parser.add_argument('-p', '--PORT', type=int, help="PORT to bind to", default=9998)
+    args = parser.parse_args()
+    
+    main(args)

@@ -49,11 +49,14 @@ def recv_from(conn):
     while True:
       data = conn.recv(4096)
       if not data:
+        print("inside recv_from, no data received, break...")
         break
       buff += data
   except Exception as e:
-    return buffer
-  return buffer
+    print("Error received in recv_from: {}".format(e))
+    return buff
+  print("returning without error from recv_from with buffer: {}".format(buff))
+  return buff
 
 
 # Modify request packs transporting through proxy prior to forwarding
@@ -71,18 +74,19 @@ def response_handler(buff):
 def proxy_handler(client_sock, remote_host, remote_port, receive_first):
   remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # establish conn to remote host (cont' below)
   remote_socket.connect((remote_host, remote_port)) # connect with supplied (IP, PORT) params
-
+  print("Connected to remote socket HOST/PORT -- {}/{}".format(remote_host, remote_port))
+  print("receive_first value: {}, type: {}".format(receive_first, type(receive_first)))
   # for some connection types, we may need to initiate connection to remote and req data before continuing. Check this here based on param
-  if receive_first:
-    remote_buff = receive_from(remote_socket) # receive data from remote socket, store in buffer
+  if receive_first == True:
+    remote_buff = recv_from(remote_socket) # receive data from remote socket, store in buffer
     hexdump(remote_buff) # get data from packet received, then continue
 
-  remote_buff = response_handler(remote_buff) # pass in original remote buffer and update it with modified buffer returned from fct
-  if len(remote_buff): # something exists in buffer...
-    client_socket.send(remote_buff)
+    remote_buff = response_handler(remote_buff) # pass in original remote buffer and update it with modified buffer returned from fct
+    if len(remote_buff): # something exists in buffer... wait do I need this??? 
+      client_sock.send(remote_buff)
 
   while True: 
-    client_buff = receive_from(client_sock)
+    client_buff = recv_from(client_sock)
     # if we received something from client, print stats
     if len(client_buff):
       print(f"{len(client_buff)} bytes recceived from client")
@@ -92,12 +96,15 @@ def proxy_handler(client_sock, remote_host, remote_port, receive_first):
       print("Data sent to remote")
 
   # after sending data, wait for response from remote host and call handler function for response received
-    remote_buff = receive_from(remote_socket)
+    remote_buff = recv_from(remote_socket)
+    # remote_buff = "test" # TESTING, REMOVE
     if len(remote_buff): # check if we've received anything before continuing
       print("{} bytes received from remote host".format(len(remote_buff)))
       hexdump(remote_buff) # print some stats
-      remote_buff = response_handler(remote_buff) # call handler to modify
-      client_sock.send(remote_buff)
+      # remote_buff = response_handler(remote_buff) # call handler to modify
+      # .encode("utf-8")
+      print("remote_buff: {}, type: {}".format(remote_buff, type(remote_buff)))
+      client_sock.send(remote_buff.encode("utf-8"))
       print("Response sent to client")
 
     if not len(remote_buff) or not len(client_buff): # nothing more to do, exit loop
@@ -110,24 +117,25 @@ def proxy_handler(client_sock, remote_host, remote_port, receive_first):
 def server_loop(local_host, local_port, remote_host, remote_port, receive_first):
   server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # create server socket
   try:
-    server.bind((remote_host, remote_port)) # bind: reserves port for use (cannot be used until conn is closed)
+    server.bind((local_host, local_port)) # bind: reserves port for use (cannot be used until conn is closed)
     # https://stackoverflow.com/questions/64145131/socket-bind-vs-socket-listen  // helpful for bind vs listen fcts for above
   except Exception as e: 
-    print("Error binding server to remote HOST/PORT: {e}")
+    print("Error binding server to remote HOST/PORT: {}".format(e))
     sys.exit()
 
-  print("Server binded to Host/Port: {remote_host}/{remote_port}")
+  print("Server binded to Host/Port: {}/{}".format(local_host, local_port))
   server.listen(5) # See stack overflow link above; server listening for incoming packets; Max 5 conns
   while True:
     # accept method waits for incoming connection. When connection received, it returns a new socket obj of client and their address
     client_socket, addr = server.accept()
-    print("Received connection from client address: {addr}")
+    print("Received connection from client address: {}".format(addr))
     # creating thread for comms between client and server:
     proxy_instance_thread = threading.Thread(target=proxy_handler, args=(client_socket, remote_host, remote_port, receive_first))
+    print("starting thread...")
     proxy_instance_thread.start()
 
 def main():
-  if(len(sys.argv[1:]) != 5:
+  if len(sys.argv[1:]) != 5:
     print("Check arguments! Requires localhost, localport, remotehost, remoteport, receive_first")
     sys.exit(0)
   localhost = sys.argv[1]
@@ -145,9 +153,3 @@ def main():
 
 if __name__ == "__main__":
   main()
-
-
-  
-  
-    
-    
