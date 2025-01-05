@@ -14,3 +14,18 @@ Using netcat.py:
   
   ** The command prompt will appear; example command below **
   >> cat /etc/passwd
+
+
+Testing proxy.py locally: 
+
+Terminal 1 -- 
+>> python3 TCP_server.py -i 127.0.0.1 -p 9998   // Server listening on IP/PORT for incoming packs
+
+Terminal 2 --
+// localhost, localport, remotehost, remoteport, receive_first
+>> python3 proxy.py 127.0.0.1 8080 127.0.0.1 9998 True  // binds to localhost/localport 
+
+Terminal 3 -- 
+>> python3 TCP_client.py -t 127.0.0.1 -p 8080
+
+By running this, the client will send information to the proxy in which the proxy can modify the message (or simply pass it through), it then sends the (modified) response to the server
