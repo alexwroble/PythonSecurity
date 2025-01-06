@@ -26,7 +26,7 @@ args = parser.parse_args()
 
 packetFormat = 'c I I 5120s' # Packet format string to interpret/send packets
 
-#Checking args: remove before submitting
+#Checking args
 # print(args)
 # print(args.file_option)
 
@@ -37,12 +37,12 @@ with open('tracker.txt', 'r') as trackerFile:
         line = line.strip() # Remove end \n
         el = line.split() # separates elements of line by spaces and stores as list
         trackerData.append(el) # add el to list of requests from tracker.txt
-        # print(el) # TESTING: Remove before submittion
+        print(el) # TESTING
 
 trackerDataSorted = sorted(trackerData, key=lambda x: x[1])
-# print("trackerDataSorted: ---------")
-# print(trackerDataSorted)
-# print("END trackerDataSorted: ---------")
+print("trackerDataSorted: ---------")
+print(trackerDataSorted)
+print("END trackerDataSorted: ---------")
 
 grouped_dict = defaultdict(list)
 for line in trackerDataSorted:
@@ -95,8 +95,9 @@ for line in orderedSortedTracker:
     #print(line[2]) # should be machine that it's on
     # senderAddr = (trackerData[0][2], int(trackerData[0][3]))
     senderIP = socket.gethostbyname(line[2]) # get IP of sender
-    #print(senderIP)
+    print("senderIP (socket.gethostbyname(line[2])): {}".format(senderIP))
     senderAddr = (senderIP, int(line[3]))
+    print("sender addr: {}".format(senderAddr))
 
     sockOut.sendto(packedReq, senderAddr)
     sockOut.close()
@@ -106,9 +107,12 @@ for line in orderedSortedTracker:
     # STEP 3: WAIT FOR RESPONSE FROM SENDER ---------------------
     # create socket "mySock"
     myHostName = socket.gethostname() # get my name
+    print("myHostName: {}".format(myHostName))
     myIP = socket.gethostbyname(myHostName) # get my ip
+    myIP = "127.0.0.1" # set as localhost for now instead of resolving to kali (127.0.1.1)
     sockIn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     myWaitingPortAddr = (myIP, args.port)
+    print("myWaitingPortAddr: {}".format(myWaitingPortAddr))
     sockIn.bind(myWaitingPortAddr) # Bind to port from CLA
 
     myMessageTemp = bytes()

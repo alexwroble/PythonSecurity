@@ -30,6 +30,8 @@ myHostName = socket.gethostname() # get my name
 myIP = socket.gethostbyname(myHostName) # get my ip
 # print(socket.gethostbyname)
 myPort = (myIP, args.port) # bind with this address to wait for mssg
+myPort = ("127.0.0.1", args.port)
+print("Waiting for message on address: {}".format(myPort))
 sockIn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sockIn.bind(myPort)
 data, addr = sockIn.recvfrom(5132)

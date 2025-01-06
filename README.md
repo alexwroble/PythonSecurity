@@ -47,4 +47,39 @@ Distributed File Transfer System: (network sim, spicy attacks to come later)
 
 >> rmk: the sequence number doesn't need to be in any specific order, the requester will sort and reach out to the senders in order regardless
 
+> Packet layout [9 byte header, variable length payload]: 
+>> packet type: 8 bits (1 byte)
+>> sequence number (can be arbitrary for sender -- internal use only; increments automaticaly by bytes in the payload added): 32 bits (4 bytes)
+>> length (bytes in payload; '0' for request packets): 32 bits (4 bytes)
+
 > Attack ideas: DoS, Eavesdropping, file poisoning
+
+
+Basic requester/sender testing: 
+
+> requester.py usage: 
+
+>> -p --port: Port that requester waits for incoming packets
+>> -0 --file_option: name of file being requested
+
+> sender.py usage: 
+
+>> -p --port: Port that the sender waits for incoming request packets
+>> -g --reqPort: port that the requester is waiting
+>> -r --rate: number of packets to be sent per second (choose a higher value for freaky-fast delivery ;)
+>> -q --seq_no: inital sequence of the packet exchange
+>> -l --length: length of the payload (in bytes)
+
+
+
+>> Place the requester.py file in one folder, and each sender in its own folder below root
+
+>> Place the tracker.txt document in the requester's folder, and the piece of the files in the corresponding sender's folder
+>> tracker.txt: 
+>>> testFile.txt 1 localhost 6767
+
+>> In terminal 1, activate sender1: python3 sender.py -p 6767 -g 5454 -r 100 -q 100 -l 50
+
+>> In terminal 2, activate requester: python3 requester.py -p 5454 -o testFile.txt
+
+>> RMK: The current sender.py in S1_t contains additional print statements for testing/debugging; also has hostname hard coded for localhost (had problems testing with use of kali and MacOS)
