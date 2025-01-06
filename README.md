@@ -82,4 +82,4 @@ Basic requester/sender testing:
 
 >> In terminal 2, activate requester: python3 requester.py -p 5454 -o testFile.txt
 
->> RMK: The current sender.py in S1_t contains additional print statements for testing/debugging; also has hostname hard coded for localhost (had problems testing with use of kali and MacOS)
+>> RMK: The current sender.py in S1_t contains additional print statements for testing/debugging; also has hostname hard coded for localhost (had problems testing with use of kali VM and MacOS when resolving host IP address)
